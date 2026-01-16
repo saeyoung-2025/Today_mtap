@@ -613,6 +613,35 @@
             border-color: var(--accent);
         }
 
+        /* Preset Links */
+        .preset-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .preset-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
         .icon-picker {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -716,16 +745,17 @@
                             <span>인터넷에 노출되지 않아 보안이 완벽합니다</span>
                         </div>
                         <div class="info-item">
-                            <i class="fas fa-infinity"></i>
-                            <span>모든 데이터는 영구 저장됩니다 (통계 화면은 최근 5년 표시, 이전 년도는 '이전 년도 보기'에서 확인)</span>
+                            <i class="fas fa-cloud-arrow-up"></i>
+                            <span>백업은 메모장에 저장 후 불러오기로 복원 가능하며, 새 디바이스에서도 복원할 수 있습니다</span>
                         </div>
                         <div class="info-item">
-                            <i class="fas fa-cloud-arrow-up"></i>
-                            <span>새 디바이스 사용 시 백업/복원이 필요합니다 (백업 파일이 자동 다운로드됩니다)</span>
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <span>백업 없이 디바이스 변경 시 자료가 삭제되니 주의하세요</span>
                         </div>
                         <div class="info-contact">
                             <p>Today_tab</p>
                             <a href="https://mail.google.com/mail/?view=cm&to=todaytab.help@gmail.com" target="_blank">todaytab.help@gmail.com</a>
+
                         </div>
                     </div>
                 </button>
@@ -821,6 +851,20 @@
         <div class="link-modal" id="linkModal">
             <div class="link-modal-content">
                 <div class="link-modal-title" id="linkModalTitle"><i class="fas fa-plus"></i> 링크 추가</div>
+                
+                <!-- 프리셋 바로가기 -->
+                <div class="link-form-group">
+                    <label>⚡ 빠른 추가 (클릭하면 자동입력)</label>
+                    <div class="preset-links">
+                        <button type="button" class="preset-btn" onclick="applyPreset('youtube')"><i class="fab fa-youtube"></i> 유튜브</button>
+                        <button type="button" class="preset-btn" onclick="applyPreset('twitter')"><i class="fab fa-twitter"></i> 트위터</button>
+                        <button type="button" class="preset-btn" onclick="applyPreset('instagram')"><i class="fab fa-instagram"></i> 인스타</button>
+                        <button type="button" class="preset-btn" onclick="applyPreset('gemini')"><i class="fas fa-robot"></i> 제미나이</button>
+                        <button type="button" class="preset-btn" onclick="applyPreset('chatgpt')"><i class="fas fa-comments"></i> ChatGPT</button>
+                        <button type="button" class="preset-btn" onclick="applyPreset('claude')"><i class="fas fa-brain"></i> Claude</button>
+                    </div>
+                </div>
+                
                 <div class="link-form-group">
                     <label>이름</label>
                     <input type="text" id="linkName" class="link-form-input" placeholder="예: 도서관">
@@ -1148,15 +1192,30 @@
             }
         }
 
+        // 프리셋 데이터
+        const presetData = {
+            youtube: { name: '유튜브', url: 'https://www.youtube.com', icon: 'fab fa-youtube', color: 'linear-gradient(135deg,#FF0000,#FF4444)' },
+            twitter: { name: '트위터', url: 'https://twitter.com', icon: 'fab fa-twitter', color: 'linear-gradient(135deg,#1DA1F2,#4DB5F5)' },
+            instagram: { name: '인스타그램', url: 'https://www.instagram.com', icon: 'fab fa-instagram', color: 'linear-gradient(135deg,#E4405F,#F77737)' },
+            gemini: { name: '제미나이', url: 'https://gemini.google.com', icon: 'fas fa-robot', color: 'linear-gradient(135deg,#4285F4,#34A853)' },
+            chatgpt: { name: 'ChatGPT', url: 'https://chat.openai.com', icon: 'fas fa-comments', color: 'linear-gradient(135deg,#10A37F,#1A7F64)' },
+            claude: { name: 'Claude', url: 'https://claude.ai', icon: 'fas fa-brain', color: 'linear-gradient(135deg,#D97706,#F59E0B)' }
+        };
+
+        function applyPreset(presetKey) {
+            const preset = presetData[presetKey];
+            if (preset) {
+                document.getElementById('linkName').value = preset.name;
+                document.getElementById('linkUrl').value = preset.url;
+                selectedIcon = preset.icon;
+                selectedColor = preset.color;
+                renderPickers();
+            }
+        }
+
         // Initialize quick links
         document.addEventListener('DOMContentLoaded', () => {
             loadQuickLinks();
         });
 
-        // Close modal on outside click
-        document.getElementById('linkModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('linkModal')) {
-                closeLinkModal();
-            }
-        });
-    </script>
+        // 
