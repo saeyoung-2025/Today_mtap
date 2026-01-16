@@ -387,8 +387,16 @@
                     <div class="card-title"><i class="fas fa-cloud"></i>데이터 백업/복원</div>
                     <p style="font-size: 0.85rem; line-height: 1.6;">💾 모든 데이터는 <strong>영구 저장</strong>됩니다. 화면에는 최근 5년만 표시되지만, 이전 년도는 위의 '이전 년도 보기'에서 확인할 수 있습니다.</p>
                     <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px;">새 디바이스 사용 시 백업/복원이 필요합니다.</p>
+                    
+                    <div style="background: var(--bg-primary); padding: 12px; border-radius: 8px; margin: 12px 0; font-size: 0.8rem; line-height: 1.6;">
+                        <p>💻 <strong>PC</strong>: 'PC 백업' 클릭 → 텍스트를 메모장에 저장</p>
+                        <p style="margin-top: 6px;">📱 <strong>모바일</strong>: '모바일 백업' 클릭 → 카톡 나에게 보내기 또는 메일로 전송</p>
+                        <p style="margin-top: 6px;">🔄 <strong>복원</strong>: 저장한 파일(.json 또는 .txt)을 선택하여 복원</p>
+                    </div>
+                    
                     <div class="backup-btn-group">
-                        <button class="btn btn-primary" onclick="downloadBackupFile()"><i class="fas fa-download"></i> 백업 파일 다운로드</button>
+                        <button class="btn btn-primary" onclick="displayDataAsJson()"><i class="fas fa-desktop"></i> PC 백업</button>
+                        <button class="btn btn-primary" onclick="mobileBackup()"><i class="fas fa-mobile-alt"></i> 모바일 백업</button>
                         <input type="file" id="backupFileInput" accept=".json, .txt" style="display: none;" onchange="importDataFromJson(event)">
                         <button class="btn btn-secondary" onclick="document.getElementById('backupFileInput').click()"><i class="fas fa-upload"></i> 백업 파일 복원</button>
                     </div>
@@ -1021,6 +1029,65 @@
             alert('백업 파일이 다운로드되었습니다!');
         }
         window.downloadBackupFile = downloadBackupFile;
+
+        // 모바일 백업 (공유하기)
+        async function mobileBackup() {
+            const budgets = await db.budgets.toArray();
+            const goals = await db.goals.toArray();
+            const fixedItems = await db.fixedItems.toArray();
+            
+            if (budgets.length === 0 && goals.length === 0 && fixedItems.length === 0) {
+                alert('백업할 데이터가 없습니다.');
+                return;
+            }
+            
+            const data = JSON.stringify({ budgets, goals, fixedItems }, null, 2);
+            const today = new Date().toISOString().slice(0, 10);
+            const fileName = `가계부_백업_${today}.json`;
+            
+            // Web Share API 지원 확인
+            if (navigator.share && navigator.canShare) {
+                const file = new File([data], fileName, { type: 'application/json' });
+                
+                if (navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: '가계부 백업',
+                            text: '가계부 백업 파일입니다.'
+                        });
+                        return;
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            console.log('파일 공유 실패, 텍스트 공유 시도');
+                        } else {
+                            return;
+                        }
+                    }
+                }
+                
+                // 파일 공유 안 되면 텍스트로 공유
+                try {
+                    await navigator.share({
+                        title: '가계부 백업',
+                        text: data
+                    });
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                }
+            }
+            
+            // Share API 지원 안 하면 클립보드 복사
+            try {
+                await navigator.clipboard.writeText(data);
+                alert('백업 데이터가 클립보드에 복사되었습니다!\n\n카카오톡 "나에게 보내기" 또는 메모앱에 붙여넣기 하세요.');
+            } catch (err) {
+                // 클립보드도 안 되면 기존 방식
+                displayDataAsJson();
+            }
+        }
+        window.mobileBackup = mobileBackup;
     </script>
 </body>
 </html>
